@@ -1,0 +1,11 @@
+CREATE TABLE t_robot(
+    `id` INT AUTO_INCREMENT,
+    `name` VARCHAR(255) NOT NULL,
+    `secret` VARCHAR(255) NOT NULL,
+    `mail` VARCHAR(255) DEFAULT NULL,
+    `token` VARCHAR(255) NOT NULL,
+    `isDelete` tinyint(1) NOT NULL  DEFAULT 0,
+    `created` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `updated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (id)
+)
