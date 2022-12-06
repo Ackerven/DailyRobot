@@ -31,9 +31,13 @@ class Postman:
     def send(self, address, *args, **kwargs):
         message = MIMEText(kwargs['text'], 'plain', 'utf-8')
         message['Subject'] = Header(kwargs['subject'])
-        message['From'] = self.username
-        message['To'] = address
+        message['From'] = Header(self.username)
+        message['To'] = Header(address)
         self.smtp.sendmail(self.username, address, message.as_string())
 
     def __del__(self):
-        self.smtp.quit()
+        try:
+            self.smtp.quit()
+        except Exception as ex:
+            # print(str(ex))
+            pass
