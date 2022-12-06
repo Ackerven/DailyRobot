@@ -7,7 +7,7 @@
 # @Copyright Copyright(C) 2022 Ackerven All rights reserved.
 import time
 
-from utils.mysql.mysql import MySQL
+from utils.datascore.mysql.mysql import MySQL
 
 
 def Singleton(cls):
