@@ -53,10 +53,12 @@ class MySQL(DataScore):
         self.password = config['password']
         self.db = config['db']
 
-    def _handler(self, record) -> User:
-        return User(record[0], record[1], record[2],
-                    record[3], record[4], record[5],
-                    record[6], record[7])
+    def _handler(self, record):
+        if record is not None:
+            return User(record[0], record[1], record[2],
+                        record[3], record[4], record[5],
+                        record[6], record[7])
+        return None
 
     def queryAll(self):
         coon = self.getConnect()
