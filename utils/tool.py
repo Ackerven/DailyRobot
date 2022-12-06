@@ -5,6 +5,7 @@
 # OS: Windows 10
 # IDE: PyCharm
 # @Copyright Copyright(C) 2022 Ackerven All rights reserved.
+import threading
 import time
 
 from utils.datascore.mysql.mysql import MySQL
@@ -21,8 +22,18 @@ def Singleton(cls):
     return _singleton
 
 
-@Singleton
-class Notify:
+class SingletonClass(type):
+    _instance_lock = threading.Lock()
+
+    def __call__(cls, *args, **kwargs):
+        if not hasattr(cls, "_instance"):
+            with SingletonClass._instance_lock:
+                if not hasattr(cls, "_instance"):
+                    cls._instance = super(SingletonClass, cls).__call__(*args, **kwargs)
+        return cls._instance
+
+
+class Notify(metaclass=SingletonClass):
     TITLE = '[DailyRobot]'
 
     def __init__(self, postman=None, address=''):
@@ -58,8 +69,7 @@ class Notify:
                           text=text)
 
 
-@Singleton
-class DB:
+class DB(metaclass=SingletonClass):
     SOURCES = {
         'MYSQL': 'mysql',
     }
