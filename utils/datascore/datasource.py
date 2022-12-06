@@ -26,7 +26,7 @@ class DataScore(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def update(self, name):
+    def update(self, user):
         pass
 
     @abc.abstractmethod
