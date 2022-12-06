@@ -6,12 +6,12 @@
 # IDE: PyCharm
 # @Copyright Copyright(C) 2022 Ackerven All rights reserved.
 
-class Singleton(object):
-    def __init__(self, cls):
-        self._cls = cls
-        self._instance = {}
+def Singleton(cls):
+    _instance = {}
 
-    def __call__(self):
-        if self._cls not in self._instance:
-            self._instance[self._cls] = self._cls()
-        return self._instance[self._cls]
+    def _singleton(*args, **kwargs):
+        if cls not in _instance:
+            _instance[cls] = cls(*args, **kwargs)
+        return _instance[cls]
+
+    return _singleton
