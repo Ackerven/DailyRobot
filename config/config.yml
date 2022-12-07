@@ -24,3 +24,11 @@ db:
     username: ''
     password: ''
     db: ''
+
+mail:
+  smtp:
+    host: ''
+    username: ''
+    password: ''
+    port: ''
+    debug: false
