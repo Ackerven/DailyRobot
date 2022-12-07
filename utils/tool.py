@@ -8,6 +8,8 @@
 import threading
 import time
 
+import yaml
+
 from utils.datascore.mysql.mysql import MySQL
 
 
@@ -125,3 +127,19 @@ class DB(metaclass=SingletonClass):
         :return:
         """
         self.engine.insert(user)
+
+
+class Config(metaclass=SingletonClass):
+    def __init__(self, file):
+        with open(file, 'r', encoding='utf-8') as f:
+            self.config = yaml.load(f, Loader=yaml.FullLoader)
+
+    def getConfig(self, name):
+        """ 获取配置
+
+        :param name: 配置名称
+        :return: 配置项 -> dict
+        """
+        if name in self.config:
+            return self.config['name']
+        return None
