@@ -224,6 +224,10 @@ class LoggerPool(metaclass=SingletonClass):
         if not os.path.exists(fileName):
             fp = open(fileName, 'w', encoding='utf-8')
             fp.close()
+        else:
+            os.remove(fileName)
+            fp = open(fileName, 'w', encoding='utf-8')
+            fp.close()
         handler = logging.FileHandler(filename=fileName, encoding='utf-8')
         handler.setLevel(self.LEVELS[level])
         handler.setFormatter(format_)
