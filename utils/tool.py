@@ -44,6 +44,7 @@ class Notify(metaclass=SingletonClass):
     TITLE = '[DailyRobot]'
 
     def __init__(self, postman=None, address=''):
+        print('Notify Init...')
         self.postman = postman
         self.address = address
 
@@ -82,6 +83,7 @@ class DB(metaclass=SingletonClass):
     }
 
     def __init__(self, source='mysql', config=None):
+        print(f'DataScore {source} Init...')
         self.engine = None
         if source == 'mysql':
             self.engine = MySQL(config)
@@ -136,6 +138,7 @@ class DB(metaclass=SingletonClass):
 
 class Config(metaclass=SingletonClass):
     def __init__(self, file):
+        print('Config Init...')
         with open(file, 'r', encoding='utf-8') as f:
             self.config = yaml.load(f, Loader=yaml.FullLoader)
 
@@ -161,6 +164,7 @@ class LoggerPool(metaclass=SingletonClass):
     }
 
     def __init__(self, name='', config=None):
+        print("LoggerPool Init...")
         self.name = name
         self.config = config
         self._instance = {}
