@@ -6,6 +6,7 @@
 # IDE: PyCharm
 # @Copyright Copyright(C) 2022 Ackerven All rights reserved.
 import datetime
+import json
 import logging
 import os
 import sys
@@ -13,8 +14,10 @@ import threading
 import time
 from logging.handlers import TimedRotatingFileHandler
 
+import requests
 import yaml
 
+from model.JSONDict import reportFrom
 from utils.datascore.mysql.mysql import MySQL
 
 
@@ -262,3 +265,112 @@ class LoggerPool(metaclass=SingletonClass):
         if name in self._instance:
             del self._instance[name]
             del logging.Logger.manager.loggerDict[name]
+
+
+class Robot:
+    _headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.138 Safari/537.36 NetType/WIFI MicroMessenger/7.0.20.1781(0x6700143B) WindowsWechat(0x63030532)',
+    }
+    HOST = 'https://xxcj.bnuzh.edu.cn'
+
+    def __init__(self, user):
+        self.user = user
+        self.logger = LoggerPool().get(user.name)
+        self.session = requests.Session()
+        self.data = None
+
+    def auth(self, code):
+        """ 使用 code 获取 token
+
+        :param code: 43位的secret
+        """
+        self.logger.info('{} 请求授权'.format(self.user.name))
+        api = f'/hApi/applet/userDailyReport/healthAuthorization/{code}'
+        url = self.HOST + api
+        response = self.session.get(url, headers=self._headers)
+        if response.status_code == 200:
+            result = json.loads(response.text)
+            if result['message'] == '授权成功':
+                self.logger.info(f'{self.user.name} 授权成功')
+                self.user.token = result['data']['qyToken']
+            else:
+                self.logger.error(f'{self.user.name} 授权失败，请检查 code 是否合法！Message: {result["message"]}')
+        else:
+            self.logger.error(f'{self.user.name} 请求失败！状态码：{str(response.status_code)}')
+
+    def lately(self):
+        """ 获取用户最近16天的打卡情况
+
+        :return:
+        """
+        self.logger.info(f'{self.user.name} 获取打卡情况')
+        api = f'/hApi/applet/userDailyReport/getLatelyUserDailyReport'
+        self._headers['Authorization-qy'] = f'Bearer {self.user.token}'
+        url = self.HOST + api
+        response = self.session.get(url, headers=self._headers)
+        if response.status_code == 200:
+            result = json.loads(response.text)
+            if result['data'] is not None:
+                self.logger.info(f'{self.user.name} 获取打卡情况成功')
+                self.data = result['data']
+            else:
+                self.logger.info(f'{self.user.name} 获取打卡情况失败！Message: {result["message"]}')
+        else:
+            self.logger.error(f'{self.user.name} 请求失败！状态码：{response.status_code}')
+
+    def check(self):
+        """ 检查用户是否打卡
+
+        :return:
+        """
+        if self.data is None:
+            self.lately()
+        self.logger.info(f'检查 {self.user.name} 是否打卡')
+        today = self.data[0]
+        if today['dailyReportStatus'] == 1:
+            self.logger.info(f'{self.user.name} 已打卡')
+            return True
+        elif today['dailyReportStatus'] == 0:
+            self.logger.info(f'{self.user.name} 未打卡')
+            return False
+
+    def _load(self):
+        """ 处理打卡数据
+
+        :return:
+        """
+        if self.data is None:
+            self.lately()
+        self.logger.info(f'{self.user.name} 加载数据')
+        yesterday = self.data[1]
+        exclude = ['id', 'todayDate', 'todayTime', 'createTime', 'updateTime', 'version']
+        for i in reportFrom.keys():
+            if i not in exclude:
+                reportFrom[i] = yesterday[i]
+        reportFrom['id'] = self.data[0]['id']
+        reportFrom['todayDate'] = self.data[0]['todayDate']
+        reportFrom['createTime'] = self.data[0]['createTime']
+        reportFrom['todayTime'] = time.strftime('%H:%M:%S', time.localtime())
+        reportFrom['updateTime'] = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())
+        return reportFrom
+
+    def submit(self):
+        """ 提交打卡数据
+
+        :return:
+        """
+        self.logger.info(f'{self.user.name} 开始打卡')
+        api = f'/hApi/applet/userDailyReport/addUserDailyReport'
+        self._headers['Authorization-qy'] = f'Bearer {self.user.token}'
+        self._headers['Content-Type'] = 'application/json;charset=UTF-8'
+        url = self.HOST + api
+        from_ = json.dumps(self._load(), ensure_ascii=False)
+        response = self.session.post(url, headers=self._headers, data=from_.encode('utf-8'))
+        if response.status_code == 200:
+            result = json.loads(response.text)
+            if result['message'] == '提交成功':
+                self.logger.info(f'{self.user.name} 打卡成功')
+            else:
+                self.logger.error(f'{self.user.name} 打卡失败！Message: {result["message"]}')
+        else:
+            self.logger.error(f'{self.user.name} 请求失败！状态码：{response.status_code}')
