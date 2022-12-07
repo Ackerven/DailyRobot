@@ -341,7 +341,7 @@ class Robot:
     def _load(self):
         """ 处理打卡数据
 
-        :return:
+        :return: 打卡表单
         """
         if self.data is None:
             self.lately()
@@ -361,7 +361,7 @@ class Robot:
     def submit(self):
         """ 提交打卡数据
 
-        :return:
+        :return: 打卡是否成功
         """
         self.logger.info(f'{self.user.name} 开始打卡')
         api = f'/hApi/applet/userDailyReport/addUserDailyReport'
@@ -374,7 +374,10 @@ class Robot:
             result = json.loads(response.text)
             if result['message'] == '提交成功':
                 self.logger.info(f'{self.user.name} 打卡成功')
+                return True
             else:
                 self.logger.error(f'{self.user.name} 打卡失败！Message: {result["message"]}')
         else:
             self.logger.error(f'{self.user.name} 请求失败！状态码：{response.status_code}')
+
+        return False
