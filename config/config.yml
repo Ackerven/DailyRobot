@@ -17,3 +17,10 @@ log:
   mail:
     enable: true
     level: 'INFO'
+
+db:
+  mysql:
+    host: ''
+    username: ''
+    password: ''
+    db: ''
