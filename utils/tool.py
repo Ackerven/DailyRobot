@@ -141,5 +141,5 @@ class Config(metaclass=SingletonClass):
         :return: 配置项 -> dict
         """
         if name in self.config:
-            return self.config['name']
+            return self.config[name]
         return None
