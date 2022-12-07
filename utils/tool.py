@@ -5,8 +5,13 @@
 # OS: Windows 10
 # IDE: PyCharm
 # @Copyright Copyright(C) 2022 Ackerven All rights reserved.
+import datetime
+import logging
+import os
+import sys
 import threading
 import time
+from logging.handlers import TimedRotatingFileHandler
 
 import yaml
 
@@ -143,3 +148,113 @@ class Config(metaclass=SingletonClass):
         if name in self.config:
             return self.config[name]
         return None
+
+
+class LoggerPool(metaclass=SingletonClass):
+    LEVELS = {
+        'NOTSET': logging.NOTSET,
+        'DEBUG': logging.DEBUG,
+        'INFO': logging.INFO,
+        'WARNING': logging.WARNING,
+        'ERROR': logging.ERROR,
+        'CRITICAL': logging.CRITICAL
+    }
+
+    def __init__(self, name='', config=None):
+        self.name = name
+        self.config = config
+        self._instance = {}
+        self._init()
+
+    def _init(self):
+        path = self.config['path']
+        level = self.config['level']
+
+        if not (os.path.exists(path) and os.path.isdir(path)):
+            os.mkdir(path)
+
+        logger = logging.getLogger(self.name)
+        logger.setLevel(self.LEVELS[level])
+        if self.config['file']['enable']:
+            logger.addHandler(self._fileHandler(self.name))
+        logger.addHandler(self._consoleHandler())
+        self._instance[self.name] = logger
+
+    def _fileHandler(self, name):
+        path = self.config['path'] + name
+        fileName = path + f'/{name}.log'
+        level = self.config['file']['level']
+        format_ = logging.Formatter(self.config['format'][level])
+
+        if not (os.path.exists(path) and os.path.isdir(path)):
+            os.mkdir(path)
+        if not os.path.exists(fileName):
+            fp = open(fileName, 'a', encoding='utf-8')
+            fp.close()
+        handler = TimedRotatingFileHandler(filename=fileName, encoding='utf-8', when='midnight', interval=1,
+                                           backupCount=7, atTime=datetime.time(0, 0, 0, 0))
+        handler.setFormatter(format_)
+        handler.setLevel(self.LEVELS[level])
+        return handler
+
+    def _consoleHandler(self):
+        level = self.config['console']['level']
+        format_ = logging.Formatter(self.config['format'][level])
+
+        handler = logging.StreamHandler(sys.stdout)
+        handler.setFormatter(format_)
+        handler.setLevel(self.LEVELS[level])
+        return handler
+
+    def _mailHandler(self, name):
+        path = self.config['path'] + name
+        fileName = path + '/today.log'
+        level = self.config['mail']['level']
+        format_ = logging.Formatter(self.config['format'][level])
+
+        if not (os.path.exists(path) and os.path.isdir(path)):
+            os.mkdir(path)
+        if not os.path.exists(fileName):
+            fp = open(fileName, 'w', encoding='utf-8')
+            fp.close()
+        handler = logging.FileHandler(filename=fileName, encoding='utf-8')
+        handler.setLevel(self.LEVELS[level])
+        handler.setFormatter(format_)
+        return handler
+
+    def _register(self, name):
+        level = self.config['level']
+
+        logger = logging.getLogger(name)
+        logger.setLevel(self.LEVELS[level])
+        if self.config['file']['enable']:
+            logger.addHandler(self._fileHandler(name))
+        if self.config['console']['enable']:
+            logger.addHandler(self._consoleHandler())
+        if self.config['mail']['enable']:
+            logger.addHandler(self._mailHandler(name))
+        return logger
+
+    def get(self, name=None) -> logging.Logger:
+        """ 获取一个日志对象
+
+        :param name: 日志对象名称
+        :return: logging.Logger 对象
+        """
+        if name is None:
+            return self._instance[self.name]
+        if name in self._instance:
+            return self._instance[name]
+        self._instance[name] = self._register(name)
+        return self._instance[name]
+
+    def destroy(self, name):
+        """ 销毁一个日志对象
+
+        :param name: 日志对象名称
+        """
+        if name == self.name:
+            return
+        if name in self._instance:
+            del self._instance[name]
+            del logging.Logger.manager.loggerDict[name]
