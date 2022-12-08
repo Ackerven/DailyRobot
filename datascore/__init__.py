@@ -1,5 +1,5 @@
 from datascore.mysql.mysql import MySQL
-from utils.tool import SingletonClass
+from utils.tool import SingletonClass, LoggerPool
 
 
 class DB(metaclass=SingletonClass):
@@ -8,7 +8,8 @@ class DB(metaclass=SingletonClass):
     }
 
     def __init__(self, source='mysql', config=None):
-        print(f'DataScore {source} Init...')
+        self.logger = LoggerPool().get()
+        self.logger.info(f'初始化 {source} 数据源')
         self.engine = None
         if source == 'mysql':
             self.engine = MySQL(config)

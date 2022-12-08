@@ -20,7 +20,7 @@ class Notify(metaclass=SingletonClass):
 
     def __init__(self, postman=None, address=''):
         self.logger = LoggerPool().get()
-        self.logger.info(f'Notify init...')
+        self.logger.info(f'初始化 Notify 对象')
         self.postman = postman
         self.address = address
 
