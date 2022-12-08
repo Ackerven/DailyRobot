@@ -14,24 +14,23 @@ from utils.tool import LoggerPool
 
 
 class Postman:
-    def __init__(self, smtpHost, username, password, port, debug=False):
-        self.smtpHost = smtpHost
-        self.username = username
-        self.password = password
-        self.port = port
-        self.debugMode = debug
+    def __init__(self, config=None):
+        self.host = config['host']
+        self.username = config['username']
+        self.password = config['password']
+        self.port = config['port']
+        self.debugMode = config['debug']
         self.smtp = None
         self.logger = LoggerPool().get()
         self.init()
 
     def init(self):
-        self.logger.info('初始化 Postman 对象')
-        self.smtp = smtplib.SMTP_SSL(host=self.smtpHost, port=self.port)
+        self.logger.debug('初始化 Postman 对象')
+        self.smtp = smtplib.SMTP_SSL(host=self.host, port=self.port)
         if self.debugMode:
             self.smtp.set_debuglevel(1)
-        self.smtp.ehlo(self.smtpHost)
+        self.smtp.ehlo(self.host)
         self.smtp.login(self.username, self.password)
-        self.logger.info('初始化 Postman 对象成功')
 
     def send(self, address, *args, **kwargs):
         self.logger.info(f'发送邮件给 {address}')
