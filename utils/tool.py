@@ -48,6 +48,7 @@ class Notify(metaclass=SingletonClass):
 
     def __init__(self, postman=None, address=''):
         self.logger = LoggerPool().get()
+        self.logger.info(f'Notify init...')
         self.postman = postman
         self.address = address
 
@@ -225,6 +226,7 @@ class Robot:
         self.logger = LoggerPool().get(user.name)
         self.session = requests.Session()
         self.data = None
+        self.logger.info(f'创建 {user.name} 打卡机器人')
 
     def auth(self, code):
         """ 使用 code 获取 token
