@@ -8,7 +8,8 @@
 import pymysql
 
 from model.bean import User
-from utils.datascore.datasource import DataScore
+from datascore.datasource import DataScore
+from utils.tool import LoggerPool
 
 
 class MySQL(DataScore):
@@ -24,9 +25,11 @@ class MySQL(DataScore):
         self.username = ''
         self.password = ''
         self.db = ''
+        self.logger = LoggerPool().get()
         self.init(config)
 
     def getConnect(self):
+        self.logger.debug(f'MySQL 获取连接')
         coon = pymysql.Connect(host=self.host,
                                user=self.username,
                                passwd=self.password,
@@ -48,6 +51,7 @@ class MySQL(DataScore):
         cur.close()
 
     def init(self, config):
+        self.logger.debug(f'MySQL 初始化')
         self.host = config['host']
         self.username = config['username']
         self.password = config['password']
@@ -61,6 +65,7 @@ class MySQL(DataScore):
         return None
 
     def queryAll(self):
+        self.logger.debug(f'MySQL 查询所有用户')
         coon = self.getConnect()
         cur = coon.cursor()
         cur.execute('SELECT * FROM t_robot WHERE `isDelete` = 0')
@@ -72,6 +77,7 @@ class MySQL(DataScore):
         return data
 
     def queryByName(self, name):
+        self.logger.debug(f'MySQL 查询用户 Name: {name}')
         coon = self.getConnect()
         cur = coon.cursor()
         sql = "SELECT * FROM t_robot WHERE `isDelete` = 0 AND `name` = '{}'"
@@ -82,6 +88,7 @@ class MySQL(DataScore):
         return user
 
     def queryById(self, id_):
+        self.logger.debug(f'MySQL 查询用户 ID: {id_}')
         coon = self.getConnect()
         cur = coon.cursor()
         sql = "SELECT * FROM t_robot WHERE `isDelete` = 0 AND `id` = {}"
@@ -92,6 +99,7 @@ class MySQL(DataScore):
         return user
 
     def update(self, user):
+        self.logger.debug(f'MySQL 更新用户 {user.name}')
         coon = self.getConnect()
         cur = coon.cursor()
         sql = "UPDATE t_robot SET `name` = '{}', `secret` = '{}', `mail` = '{}', `token` = '{}' WHERE `id` = {}"
@@ -100,6 +108,7 @@ class MySQL(DataScore):
         coon.close()
 
     def delete(self, user):
+        self.logger.debug(f'MySQL 删除用户 {user.name}')
         coon = self.getConnect()
         cur = coon.cursor()
         sql = 'UPDATE t_robot SET `isDelete` = 1 WHERE `id` = {}'
@@ -108,6 +117,7 @@ class MySQL(DataScore):
         coon.close()
 
     def insert(self, user):
+        self.logger.debug(f'MySQL 新增用户 {user.name}')
         coon = self.getConnect()
         cur = coon.cursor()
         sql = "INSERT INTO t_robot(name, secret, mail, token) VALUES ('{}', '{}', '{}', '{}')"
