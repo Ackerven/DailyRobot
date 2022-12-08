@@ -52,7 +52,7 @@ class Notify(metaclass=SingletonClass):
         self.postman = postman
         self.address = address
 
-    def failure(self, address, subject, text, *args, **kwargs):
+    def failure(self, user):
         """ 打卡失败邮箱提醒
 
         :param address: 收件人
@@ -60,10 +60,21 @@ class Notify(metaclass=SingletonClass):
         :param text: 发件内容
         :return:
         """
+        file = Config().getConfig('log')['path'] + f'{user.name}/today.log'
+        today = time.strftime('%Y/%m/%d', time.localtime())
+        text = str(today) + ' 打卡失败\n\n'
+        text += str(today) + f' {user.name}.log:\n'
+        with open(file, 'r', encoding='utf-8') as f:
+            while True:
+                line = f.readline()
+                if line:
+                    text += line
+                else:
+                    break
         text += '\n\n如果有问题，回复此邮件联系'
-        self.logger.info(f'发邮件提醒 {address} 打卡失败')
-        self.postman.send(address=address,
-                          subject=self.TITLE + subject,
+        self.logger.info(f'发邮件提醒 {user.mail} 打卡失败')
+        self.postman.send(address=user.mail,
+                          subject=self.TITLE + '{} 打卡失败'.format(today),
                           text=text)
 
     def reportFailureList(self, failure, times):
@@ -84,7 +95,7 @@ class Notify(metaclass=SingletonClass):
 
 
 class Config(metaclass=SingletonClass):
-    def __init__(self, file):
+    def __init__(self, file=None):
         print('Config Init...')
         with open(file, 'r', encoding='utf-8') as f:
             self.config = yaml.load(f, Loader=yaml.FullLoader)
