@@ -13,6 +13,7 @@ import os
 import sys
 import threading
 import time
+import traceback
 from logging.handlers import TimedRotatingFileHandler
 
 import yaml
@@ -175,19 +176,28 @@ class LoggerPool(metaclass=SingletonClass):
 class Token:
     @staticmethod
     def decode(token):
-        tmp = token.split('.')
-        header = json.loads(base64.b64decode(tmp[0]))
-        if len(tmp[1]) % 3 == 1:
-            tmp[1] += '=='
-        elif len(tmp[1]) % 3 == 2:
-            tmp[1] += '='
-        payload = json.loads(base64.b64decode(tmp[1]))
-        data = {'header': header, 'payload': payload}
+        data = None
+        try:
+            tmp = token.split('.')
+            header = json.loads(base64.b64decode(tmp[0]))
+            if len(tmp[1]) % 3 == 1:
+                tmp[1] += '=='
+            elif len(tmp[1]) % 3 == 2:
+                tmp[1] += '='
+            payload = json.loads(base64.b64decode(tmp[1]))
+            data = {'header': header, 'payload': payload}
+        except Exception as ex:
+            LoggerPool().get().error(f'Token解码异常！异常信息：{traceback.format_exc()}')
         return data
 
     @staticmethod
     def check(token):
-        data = Token.decode(token)
-        expire = int(data['payload']['exp'])
-        now = int(time.mktime(time.localtime()))
-        return now > expire
+        try:
+            data = Token.decode(token)
+            if data is None: return True
+            expire = int(data['payload']['exp'])
+            now = int(time.mktime(time.localtime()))
+            return now > expire
+        except Exception as ex:
+            LoggerPool().get().error(f'检查Token异常！异常信息：{traceback.format_exc()}')
+        return None
