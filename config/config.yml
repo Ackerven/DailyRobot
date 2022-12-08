@@ -2,12 +2,12 @@ log:
   path: 'log/'
   level: 'DEBUG'
   format:
-    NOTSET: "[%(levelname)-7s] | %(name)-12s | %(asctime)-10s | %(message)s"
+    NOTSET: "[%(levelname)-5s] | %(name)-12s | %(asctime)-10s | %(message)s"
     DEBUG: "[%(levelname)-7s] | %(name)-12s | %(asctime)-10s | %(module)-15s | %(lineno)-5d | %(funcName)-15s | %(process)-7d | %(message)s"
-    INFO: "[%(levelname)-7s] | %(name)-12s | %(asctime)-10s | %(message)s"
-    WARNING: "[%(levelname)-7s] | %(name)-12s | %(asctime)-10s | %(module)-10s | %(lineno)-5d | %(funcName)-10s | %(message)s"
-    ERROR: "[%(levelname)-7s] | %(name)-12s | %(asctime)-10s | %(module)-10s | %(lineno)-5d | %(funcName)-10s | %(message)s"
-    CRITICAL: "[%(levelname)-7s] | %(name)-12s | %(asctime)-10s | %(module)-10s | %(lineno)-5d | %(funcName)-10s | %(message)s"
+    INFO: "[%(levelname)-5s] | %(name)-12s | %(asctime)-10s | %(message)s"
+    WARNING: "[%(levelname)-5s] | %(name)-12s | %(asctime)-10s | %(module)-10s | %(lineno)-5d | %(funcName)-10s | %(message)s"
+    ERROR: "[%(levelname)-5s] | %(name)-12s | %(asctime)-10s | %(module)-10s | %(lineno)-5d | %(funcName)-10s | %(message)s"
+    CRITICAL: "[%(levelname)-5s] | %(name)-12s | %(asctime)-10s | %(module)-10s | %(lineno)-5d | %(funcName)-10s | %(message)s"
   file:
     enable: true
     level: 'DEBUG'
