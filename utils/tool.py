@@ -5,6 +5,7 @@
 # OS: Windows 10
 # IDE: PyCharm
 # @Copyright Copyright(C) 2022 Ackerven All rights reserved.
+import base64
 import datetime
 import json
 import logging
@@ -323,3 +324,24 @@ class Robot:
             self.logger.error(f'{self.user.name} 请求失败！状态码：{response.status_code}')
 
         return False
+
+
+class Token:
+    @staticmethod
+    def decode(token):
+        tmp = token.split('.')
+        header = json.loads(base64.b64decode(tmp[0]))
+        if len(tmp[1]) % 3 == 1:
+            tmp[1] += '=='
+        elif len(tmp[1]) % 3 == 2:
+            tmp[1] += '='
+        payload = json.loads(base64.b64decode(tmp[1]))
+        data = {'header': header, 'payload': payload}
+        return data
+
+    @staticmethod
+    def check(token):
+        data = Token.decode(token)
+        expire = int(data['payload']['exp'])
+        now = int(time.mktime(time.localtime()))
+        return now > expire
