@@ -43,7 +43,7 @@ class Notify(metaclass=SingletonClass):
                     else:
                         break
             text += '\n\n如果有问题，回复此邮件联系'
-            self.logger.info(f'发邮件提醒 {user.mail} 打卡失败')
+            self.logger.info(f'发邮件提醒 {user.name} 打卡失败')
             self.postman.send(address=user.mail,
                               subject=self.TITLE + '{} 打卡失败'.format(today),
                               text=text)
@@ -61,7 +61,7 @@ class Notify(metaclass=SingletonClass):
             text = '失败名单：\n'
             self.logger.info(f'第 {times} 次报告打卡失败名单')
             for i in failure.values():
-                text += str(i) + '\n'
+                text += i.to_str() + '\n'
             text += '\n共{}人'.format(len(failure))
             self.postman.send(address=self.address,
                               subject=self.TITLE + '{} 第{}次失败名单'.format(
@@ -182,3 +182,6 @@ class Robot:
             self.logger.error(f'{self.user.name} 请求失败！状态码：{response.status_code}')
 
         return False
+
+    def __del__(self):
+        LoggerPool().destroy(self.user.name)
