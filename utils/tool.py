@@ -47,7 +47,7 @@ class Notify(metaclass=SingletonClass):
     TITLE = '[DailyRobot]'
 
     def __init__(self, postman=None, address=''):
-        print('Notify Init...')
+        self.logger = LoggerPool().get()
         self.postman = postman
         self.address = address
 
@@ -60,6 +60,7 @@ class Notify(metaclass=SingletonClass):
         :return:
         """
         text += '\n\n如果有问题，回复此邮件联系'
+        self.logger.info(f'发邮件提醒 {address} 打卡失败')
         self.postman.send(address=address,
                           subject=self.TITLE + subject,
                           text=text)
@@ -72,6 +73,7 @@ class Notify(metaclass=SingletonClass):
         :return:
         """
         text = '失败名单：\n'
+        self.logger.info(f'第 {times} 次报告打卡失败名单')
         for i in failure.values():
             text += str(i) + '\n'
         text += '\n共{}人'.format(len(failure))
