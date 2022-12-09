@@ -5,7 +5,6 @@
 # OS: Windows 10
 # IDE: PyCharm
 # @Copyright Copyright(C) 2022 Ackerven All rights reserved.
-import time
 
 from apscheduler.schedulers.background import BackgroundScheduler
 
@@ -26,4 +25,4 @@ def init():
 if __name__ == '__main__':
     init()
     while True:
-        time.sleep(300)
+        pass
