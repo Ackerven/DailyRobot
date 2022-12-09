@@ -6,13 +6,15 @@
 # IDE: PyCharm
 # @Copyright Copyright(C) 2022 Ackerven All rights reserved.
 import json
+import random
 import time
 import traceback
 
 import requests
 
+from datascore import DB
 from model.JSONDict import reportFrom
-from utils.tool import LoggerPool, SingletonClass, Config
+from utils.tool import LoggerPool, SingletonClass, Config, Token
 
 
 class Notify(metaclass=SingletonClass):
@@ -185,3 +187,78 @@ class Robot:
 
     def __del__(self):
         LoggerPool().destroy(self.user.name)
+
+
+class Scheduler(metaclass=SingletonClass):
+    def __init__(self, scheduler):
+        self.logger = LoggerPool().get()
+        self.scheduler = scheduler
+        self.logger.info('初始化 Scheduler 对象')
+        self.start()
+
+    def start(self):
+        self.logger.info('定时任务开始执行')
+        config = Config().getConfig('scheduler')
+        self.scheduler.add_job(self.daily, 'cron', hour=config['daily']['h'], minute=config['daily']['m'], id='daily')
+        self.scheduler.add_job(self.token, 'cron', hour=config['token']['h'], minute=config['token']['m'], id='token')
+        self.scheduler.start()
+
+    def _loadData(self):
+        try:
+            return DB().queryAll()
+        except Exception as ex:
+            self.logger.error(f'查询所有用户失败！异常信息：{traceback.format_exc()}')
+
+    def _post(self, data):
+        failure = {}
+        for i in data:
+            time.sleep(random.randint(3, 6))
+            try:
+                r = Robot(i)
+                if not r.submit():
+                    failure[i.name] = i
+                    if i.mail != '':
+                        Notify().failure(i)
+            except Exception as ex:
+                LoggerPool().get(i.name).error(f'{i.name} 打卡异常！异常信息：{traceback.format_exc()}')
+                failure[i.name] = i
+                if i.mail != '':
+                    Notify().failure(i)
+        return failure
+
+    def daily(self):
+        self.logger.info('[定时任务] 开始打卡')
+        tmp = self._loadData()
+        retryTimes = 0
+        data = []
+        for i in tmp:
+            if i.token != '':
+                data.append(i)
+
+        failure = self._post(data)
+        Notify().reportFailureList(failure, retryTimes)
+
+        if failure:
+            while retryTimes < 3:
+                retryTimes += 1
+                self.logger.info(f'失败名单尝试第 {retryTimes} 次打卡')
+                time.sleep(600)  # 600
+                data = failure.values()
+                failure = self._post(data)
+                if failure:
+                    Notify().reportFailureList(failure, retryTimes)
+                else:
+                    break
+
+    def token(self):
+        self.logger.info('[定时任务] 清理无效Token')
+        data = self._loadData()
+        for i in data:
+            if i.token != '':
+                result = Token.check(i.token)
+                if result is not None and result is True:
+                    i.token = ''
+                    try:
+                        DB().update(i)
+                    except Exception as ex:
+                        self.logger.error(f'更新用户 {i.name} 失败！异常信息：{traceback.format_exc()}')

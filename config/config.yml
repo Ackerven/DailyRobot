@@ -32,3 +32,13 @@ mail:
     password: ''
     port: ''
     debug: false
+
+scheduler:
+  daily:
+    h: 1
+    m: 0
+    s: 0
+  token:
+    h: 0
+    m: 55
+    s: 0
