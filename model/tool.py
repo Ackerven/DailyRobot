@@ -209,7 +209,7 @@ class Scheduler(metaclass=SingletonClass):
         except Exception as ex:
             self.logger.error(f'查询所有用户失败！异常信息：{traceback.format_exc()}')
 
-    def _post(self, data):
+    def _post(self, data, retry):
         failure = {}
         for i in data:
             time.sleep(random.randint(3, 6))
@@ -217,7 +217,7 @@ class Scheduler(metaclass=SingletonClass):
                 r = Robot(i)
                 if not r.submit():
                     failure[i.name] = i
-                    if i.mail != '':
+                    if i.mail != '' and retry == 3:
                         Notify().failure(i)
             except Exception as ex:
                 LoggerPool().get(i.name).error(f'{i.name} 打卡异常！异常信息：{traceback.format_exc()}')
@@ -235,8 +235,8 @@ class Scheduler(metaclass=SingletonClass):
             if i.token != '':
                 data.append(i)
 
-        failure = self._post(data)
-        Notify().reportFailureList(failure, retryTimes)
+        failure = self._post(data, retryTimes)
+        # Notify().reportFailureList(failure, retryTimes)
 
         if failure:
             while retryTimes < 3:
@@ -244,9 +244,10 @@ class Scheduler(metaclass=SingletonClass):
                 self.logger.info(f'失败名单尝试第 {retryTimes} 次打卡')
                 time.sleep(600)  # 600
                 data = failure.values()
-                failure = self._post(data)
+                failure = self._post(data, retryTimes)
                 if failure:
-                    Notify().reportFailureList(failure, retryTimes)
+                    if retryTimes == 3:
+                        Notify().reportFailureList(failure, retryTimes)
                 else:
                     break
 
