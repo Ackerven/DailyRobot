@@ -52,6 +52,21 @@ class Notify(metaclass=SingletonClass):
         except Exception as ex:
             self.logger.info(f'发送打卡失败邮件异常！异常信息：{traceback.format_exc()}')
 
+    def tokenExpire(self, user):
+        """ Token
+
+        :param user: 用户对象
+        :return:
+        """
+        try:
+            text = "Token 已过期，请及时更新\n\n如果有问题，回复此邮件联系"
+            self.logger.info(f'发邮件提醒 {user.name} Token 已过期')
+            self.postman.send(address=user.mail,
+                              subject=self.TITLE + 'Token 已过期',
+                              text=text)
+        except Exception as ex:
+            self.logger.info(f'发送 Token 过期提醒邮件异常！异常信息：{traceback.format_exc()}')
+
     def reportFailureList(self, failure, times):
         """ 打卡失败名单邮件提醒
 
@@ -259,6 +274,7 @@ class Scheduler(metaclass=SingletonClass):
                 result = Token.check(i.token)
                 if result is not None and result is True:
                     i.token = ''
+                    Notify().tokenExpire(i)
                     try:
                         DB().update(i)
                     except Exception as ex:
