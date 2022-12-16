@@ -260,11 +260,10 @@ class Scheduler(metaclass=SingletonClass):
                 time.sleep(600)  # 600
                 data = failure.values()
                 failure = self._post(data, retryTimes)
-                if failure:
-                    if retryTimes == 3:
-                        Notify().reportFailureList(failure, retryTimes)
-                else:
+                if not failure:
                     break
+
+        Notify().reportFailureList(failure, retryTimes)
 
     def token(self):
         self.logger.info('[定时任务] 清理无效Token')
