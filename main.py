@@ -91,7 +91,7 @@ def create_app():
                 u = DB().queryByName(name)
                 if u is not None:
                     return {
-                        'code': 200,
+                        'code': 300,
                         'msg': '用户已存在'
                     }
 
