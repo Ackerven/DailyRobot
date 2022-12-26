@@ -81,6 +81,13 @@ def create_app():
             mail = data['mail']
             token = ''
             try:
+                u = DB().queryByName(name)
+                if u is not None:
+                    return {
+                        'code': 200,
+                        'msg': '用户已存在'
+                    }
+
                 DB().insert(User(0, name, secret, mail, token))
                 return {
                     'code': 200,
@@ -134,12 +141,12 @@ def create_app():
             try:
                 if not r.auth(code):
                     return {
-                        'code': 400,
+                        'code': 300,
                         'msg': '认证失败'
                     }
             except:
                 return {
-                    'code': 400,
+                    'code': 300,
                     'msg': '认证失败'
                 }
 
