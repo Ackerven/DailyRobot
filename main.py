@@ -8,7 +8,7 @@
 import json
 
 from apscheduler.schedulers.background import BackgroundScheduler
-from flask import Flask, request
+from flask import Flask, jsonify, request
 
 from datascore import DB
 from model.bean import User
@@ -162,4 +162,5 @@ def init():
 
 if __name__ == '__main__':
     init()
+    app.config['JSON_AS_ASCII'] = False
     app.run()
