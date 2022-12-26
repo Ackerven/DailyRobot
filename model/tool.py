@@ -115,10 +115,13 @@ class Robot:
             if result['message'] == '授权成功':
                 self.logger.info(f'{self.user.name} 授权成功')
                 self.user.token = result['data']['qyToken']
+                return True
             else:
                 self.logger.error(f'{self.user.name} 授权失败，请检查 code 是否合法！Message: {result["message"]}')
         else:
             self.logger.error(f'{self.user.name} 请求失败！状态码：{str(response.status_code)}')
+
+        return False
 
     def lately(self):
         """ 获取用户最近16天的打卡情况
