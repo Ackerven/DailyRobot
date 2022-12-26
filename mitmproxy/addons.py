@@ -20,7 +20,7 @@ class Interceptor:
             url = flow.request.url
             code = url.split('=')[-1]
             print(code)
-            resp = requests.get('http://127.0.0.1:5000/api/auth/{}'.format(code))
+            resp = requests.get('http://127.0.0.1:2023/api/auth/{}'.format(code))
             print(resp.text)
             flow.response = http.Response.make(200, resp.text)
         else:
