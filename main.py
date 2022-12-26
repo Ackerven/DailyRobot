@@ -8,7 +8,7 @@
 import json
 
 from apscheduler.schedulers.background import BackgroundScheduler
-from flask import Flask, jsonify, request
+from flask import Flask, request
 
 from datascore import DB
 from model.bean import User
@@ -117,25 +117,40 @@ def delete():
         }
 
 
-@app.route('/api/update/<name>/<code>', methods=['GET'])
-def update(name, code):
+@app.route('/api/auth/<code>', methods=['GET'])
+def auth(code):
     try:
+        r = Robot(User(0, '1', '', '', ''))
         try:
-            u = DB().queryByName(name)
-            r = Robot(u)
-            try:
-                if not r.auth(code):
-                    return {
-                        'code': 400,
-                        'msg': '认证失败'
-                    }
-            except:
+            if not r.auth(code):
                 return {
                     'code': 400,
                     'msg': '认证失败'
                 }
+        except:
+            return {
+                'code': 400,
+                'msg': '认证失败'
+            }
 
-            DB().update(r.user)
+        token_data = Token.decode(r.user.token)
+        if token_data is None:
+            return {
+                'code': 300,
+                'msg': 'Token 不合法'
+            }
+
+        name = token_data['payload']['sub']
+        try:
+            u = DB().queryByName(name)
+            if u is None:
+                return {
+                    'code': 300,
+                    'msg': '用户未注册'
+                }
+
+            u.token = r.user.token
+            DB().update(u)
             return {
                 'code': 200,
                 'msg': '更新Token成功'
