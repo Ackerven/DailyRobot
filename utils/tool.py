@@ -201,3 +201,14 @@ class Token:
         except Exception as ex:
             LoggerPool().get().error(f'检查Token异常！异常信息：{traceback.format_exc()}')
         return None
+
+    @staticmethod
+    def expire(token):
+        try:
+            data = Token.decode(token)
+            if data is None: return True
+            expire = int(data['payload']['exp'])
+            return time.strftime('%Y/%m/%d %H:%M:%S', time.localtime(expire))
+        except Exception as ex:
+            LoggerPool().get().error(f'获取Token过期时间异常！异常信息：{traceback.format_exc()}')
+        return None
