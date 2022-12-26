@@ -20,12 +20,12 @@ from utils.tool import Token
 app = Flask(__name__)
 
 
-@app.route('/', methods=['GET', 'POST'])
+@app.route('/api/', methods=['GET', 'POST'])
 def index():
     return 'Hello world!'
 
 
-@app.route('/login', methods=['POST'])
+@app.route('/api/login', methods=['POST'])
 def login():
     try:
         data = json.loads(request.get_data())
@@ -60,7 +60,7 @@ def login():
         }
 
 
-@app.route('/signup', methods=['POST'])
+@app.route('/api/signup', methods=['POST'])
 def signup():
     try:
         data = json.loads(request.get_data())
@@ -86,7 +86,7 @@ def signup():
         }
 
 
-@app.route('/delete', methods=['POST'])
+@app.route('/api/delete', methods=['POST'])
 def delete():
     try:
         data = json.loads(request.get_data())
@@ -117,7 +117,7 @@ def delete():
         }
 
 
-@app.route('/update/<name>/<code>', methods=['GET'])
+@app.route('/api/update/<name>/<code>', methods=['GET'])
 def update(name, code):
     try:
         try:
