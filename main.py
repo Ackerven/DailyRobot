@@ -46,6 +46,13 @@ def create_app():
             secret = data['secret']
             try:
                 u = DB().queryByName(name)
+
+                if u is None:
+                    return {
+                        'code': 300,
+                        'msg': '用户不存在'
+                    }
+
                 if u.secret == secret:
                     if u.token == '':
                         return {
