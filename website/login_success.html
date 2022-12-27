@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>DailyRobot</title>
+  <style>
+    #form{
+      margin: 100px auto;
+      width: 400px;
+      height: 240px;
+      border: 1px black solid;
+      border-radius: 8px;
+      padding: 30px;
+      align-items: center;
+    }
+    #img_div{
+      margin: 1px auto;
+      width: 100px;
+      height: 100px;
+    }
+    #btn_div{
+      width: 200px;
+      margin: 1px auto;
+    }
+    #p_div {
+      margin: 20px auto;
+      width: 160px;
+      height: 40px;
+    }
+    #btn{
+      margin:10px 35px;
+    }
+    h4 {
+      margin: 10px 160px;
+    }
+    #p_div{
+      height: 30px;
+      line-height: 30px;
+      text-align: center;
+    }
+    #help {
+      margin: -100px auto;
+      width: 100px;
+    }
+  </style>
+</head>
+<body>
+<div id="form">
+  <h4>DailyRobot</h4>
+  <div id="img_div">
+    <img src="" alt="" id="img_tu">
+  </div>
+  <div id="p_div"></div>
+  <div id="btn_div">
+    <button id="btn">我想停止自动打卡</button>
+  </div>
+</div>
+<div  id="help">
+  <a href="http://robot.erha.fun/docs">使用帮助</a>
+</div>
+<script>
+  // 取出本地响应数据
+  var res_code = window.localStorage.getItem("code");
+  var res_msg = window.localStorage.getItem("msg");
+  var img_src = document.getElementById('img_tu');
+  var msg_text = document.getElementById("p_div")
+  console.log(res_code+res_msg+"")
+  if (res_code === '200'){
+    img_src.setAttribute("src","yep.png")
+  }
+  if (res_code === '300'){
+    img_src.setAttribute("src","no.png")
+  }
+  msg_text.textContent=res_msg
+  // 获取账号密码信息,进行删除
+  function GetQueryString(name){
+    var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)", "i");//这个方法是获得页面url的某个url参数的方法var 这个正则是寻找&+url参数名字=值+&&可以不存在。
+    var r = window.location.search.substr(1).match(reg);
+    if(r != null) return decodeURI(r[2]);
+    return null;
+  }
+  var nameT = GetQueryString("name")
+  var secretT = GetQueryString("ser")
+  let aj = null;
+  var isSending = false; // 是否正在发送AJAX请求
+  btn.addEventListener('click',function (){
+    var r = confirm("你确定要停止打卡吗？")
+    if (r === true){
+      // 判断标识变量
+      if (isSending){
+        // 如果正在发送，则取消该请求，创建一个新的请求
+        aj.abort()
+      }
+      // 创建ajax对象
+      aj = new XMLHttpRequest();
+      // 修改 标识变量的值
+      isSending = true;
+      aj.open('post','http://robot.erha.fun/api/delete');
+      aj.setRequestHeader('Content-Type','application/json');
+      // 发送请求，借助stringfy来转为字符串格式进行传递
+      aj.send(JSON.stringify({
+        name: nameT,
+        secret:secretT,
+      }));
+      aj.onreadystatechange = function (){
+        if (aj.readyState === 4 ){
+          if (res_code === '200' || res_code === '300' ||res_code === '400'){
+            // 修改标识变量
+            isSending = false;
+            // 清空
+            nameT='';
+            secretT='';
+            // 跳转到首页
+            location.href='index.html'
+          }
+          else if (res_code === '500'){
+            location.href='login_success.html'
+          }
+        }
+      }
+      //获取服务端响应的数据
+      aj.onload = function () {
+        console.log(aj.responseText)
+      }
+    }
+    else {
+
+    }
+  })
+  console.log(name+"////"+secret)
+</script>
+</body>
+</html>

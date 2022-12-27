@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>DailyRobot</title>
+    <style>
+        #form{
+            margin: 100px auto;
+            width: 400px;
+            height: 200px;
+            border: 1px black solid;
+            border-radius: 8px;
+            padding: 30px;
+            align-items: center;
+        }
+        #form_div {
+            margin-left: 100px;
+        }
+        h4 {
+            margin: 10px 140px;
+        }
+        .input_1 {
+            margin-bottom: 10px;
+            width: 160px;
+        }
+        #help {
+            margin: -100px auto;
+            width: 100px;
+        }
+        #a_div {
+            float: right;
+            margin: 10px 1px;
+        }
+        button {
+            width: 170px;
+
+        }
+    </style>
+    <script>
+        var _hmt = _hmt || [];
+        (function() {
+            var hm = document.createElement("script");
+            hm.src = "https://hm.baidu.com/hm.js?aba805d8ff1389993912b68679033a64";
+            var s = document.getElementsByTagName("script")[0];
+            s.parentNode.insertBefore(hm, s);
+        })();
+    </script>
+</head>
+<body>
+<div id="form">
+    <h4>DailyRobot</h4>
+    <div id="form_div">
+        name <br>
+        <input type="text" id="name" class="input_1">
+        <br>
+        secret <br>
+        <input type="password" id="secret" class="input_1">
+        <br>
+        <button id="btn">登录</button>
+        <br>
+        <div id="a_div">
+            还没有注册？<a href="javascript:void(0);" onclick="method_js()">注册-></a>
+        </div>
+    </div>
+
+</div>
+<div  id="help">
+    <a href="">使用帮助</a>
+</div>
+<script>
+    var btn = document.getElementById('btn');
+    var nameV = document.getElementById('name');
+    var secretV = document.getElementById("secret");
+    let aj = null;
+    var isSending = false; // 是否正在发送AJAX请求
+    // 校验用户名是否为数字
+    function isNumber(str) {
+        // 处理空值问题
+        if(str === "" || str === null){
+            return false
+        }
+        if (!isNaN(str)){
+            return true
+        }else{
+            return false
+        }
+    }
+    btn.addEventListener('click',function () {
+        // 判断标识变量
+        if (isSending){
+            // 如果正在发送，则取消该请求，创建一个新的请求
+            aj.abort()
+        }
+        var nameT = nameV.value;
+        var secretT = secretV.value;
+        if(!isNumber(nameT)){
+            alert("用户名需为您的学号！");
+            document.getElementById("name").focus();
+            return false;
+        }
+        // 创建ajax对象
+        aj = new XMLHttpRequest();
+        // 修改 标识变量的值
+        isSending = true;
+        aj.open('post','http://robot.erha.fun/api/login');
+        aj.setRequestHeader('Content-Type','application/json');
+        // 发送请求，借助stringfy来转为字符串格式进行传递
+        aj.send(JSON.stringify({
+            name: nameT,
+            secret:secretT
+        }));
+        aj.onreadystatechange = function (){
+            if (aj.readyState === 4){
+                if (aj.status === 200){
+                    // 修改标识变量
+                    isSending = false;
+                    // 清空
+                    nameV.value='';
+                    secretV.value='';
+                    var data = aj.responseText
+                    // 强行转为json格式
+                    var json = eval("("+data+")");
+                    // 根据code进行不同的操作
+                    if (json.code === 200){
+                        // 跳转到登录成功页
+                        location.href='login_success.html?name='+nameT+"&ser="+secretT
+                    }
+                    else if(json.code === 300 || json === 400 || json === 500){
+                        alert(json.msg)
+                        // 跳转到登录成功页
+                        location.href='login_success.html'
+                    }
+                    // var resTest = aj.responseText
+                    // 把数据存在本地
+                    window.localStorage.setItem("code",json.code);
+                    window.localStorage.setItem("msg",json.msg);
+                }
+            }
+        }
+        //获取服务端响应的数据
+        aj.onload = function () {
+            var data = aj.responseText
+            // 强行转为json格式
+            var json = eval("("+data+")");
+            // console.log(json)
+        }
+    });
+    function method_js() {
+        location.href='regist.html'
+    }
+</script>
+</body>
+</html>
