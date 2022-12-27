@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>DailyRobot</title>
+  <style>
+    #form{
+      margin: 100px auto;
+      width: 400px;
+      height: 240px;
+      border: 1px black solid;
+      border-radius: 8px;
+      padding: 30px;
+      align-items: center;
+    }
+    #form_div {
+      margin-left: 100px;
+    }
+    h4 {
+      margin: 10px 140px;
+    }
+    .input_1 {
+      margin-bottom: 10px;
+    }
+    #help {
+      margin: -100px auto;
+      width: 100px;
+    }
+    #a_div {
+      float: right;
+      margin: 10px 1px;
+    }
+    button {
+      width: 170px;
+    }
+  </style>
+</head>
+<body>
+<div id="form">
+  <h4>DailyRobot</h4>
+  <div id="form_div">
+    name <br>
+    <input type="text" id="name" class="input_1" required>
+    <br>
+    secret <br>
+    <input type="password" id="secret" class="input_1" required>
+    <br>
+    email <br>
+    <input type="text" id="mail" placeholder="用于接收提醒（可选）" class="input_1" >
+    <button id="btn">注册</button>
+    <br>
+    <div id="a_div">
+      已有账号？<a href="javascript:void(0);" onclick="method_js()">登录-></a>
+    </div>
+  </div>
+</div>
+<div  id="help">
+  <a href="http://robot.erha.fun/docs">使用帮助</a>
+</div>
+<script>
+  var btn = document.getElementById('btn');
+  var nameV = document.getElementById('name');
+  var secretV = document.getElementById("secret");
+  var mailV = document.getElementById("mail");
+  let aj = null;
+  var isSending = false; // 是否正在发送AJAX请求
+  // 校验用户名是否为数字
+  function isNumber(str) {
+    // 处理空值问题
+    if(str === "" || str === null){
+      return false
+    }
+    if (!isNaN(str)){
+      return true
+    }else{
+      return false
+    }
+  }
+  btn.addEventListener('click',function () {
+    // 判断标识变量
+    if (isSending){
+      // 如果正在发送，则取消该请求，创建一个新的请求
+      aj.abort()
+    }
+    var nameT = nameV.value;
+    var secretT = secretV.value;
+    var mailT = mailV.value;
+    console.log(nameT+secretT+mailT+"")
+    if(!isNumber(nameT)){
+      alert("用户名需为您的学号！");
+      document.getElementById("name").focus();
+      return false;
+    }
+    // 创建ajax对象
+    aj = new XMLHttpRequest();
+    // 修改 标识变量的值
+    isSending = true;
+    aj.open('post','http://robot.erha.fun/api/signup');
+    aj.setRequestHeader('Content-Type','application/json');
+    // 发送请求，借助stringfy来转为字符串格式进行传递
+    aj.send(JSON.stringify({
+      name: nameT,
+      secret:secretT,
+      mail:mailT
+    }));
+    aj.onreadystatechange = function (){
+      if (aj.readyState === 4 && aj.status === 200){
+        // 修改标识变量
+        isSending = false;
+        // 清空
+        nameV.value='';
+        secretV.value='';
+        mailV.value=''
+        // 跳转到首页
+        location.href='index.html'
+      }
+    }
+    //获取服务端响应的数据
+    aj.onload = function () {
+      console.log(aj.responseText)
+    }
+
+  });
+  function method_js() {
+    location.href='index.html'
+  }
+</script>
+</body>
+</html>
