@@ -9,7 +9,6 @@ import json
 
 from apscheduler.schedulers.background import BackgroundScheduler
 from flask import Flask, request, make_response
-from flask_cors import CORS
 
 from datascore import DB
 from model.bean import User
