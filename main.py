@@ -8,7 +8,8 @@
 import json
 
 from apscheduler.schedulers.background import BackgroundScheduler
-from flask import Flask, request
+from flask import Flask, request, make_response
+from flask_cors import CORS
 
 from datascore import DB
 from model.bean import User
@@ -189,6 +190,14 @@ def create_app():
                 'code': 500,
                 'msg': '请联系系统管理员！'
             }
+
+    @app.after_request
+    def after(resp):
+        resp = make_response(resp)
+        resp.headers['Access-Control-Allow-Origin'] = '*'
+        # resp.headers['Access-Control-Allow-Methods'] = 'GET,POST'
+        # resp.headers['Access-Control-Allow-Headers'] = 'x-requested-with,content-type'
+        return resp
 
     return app
 
